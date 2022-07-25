@@ -178,7 +178,7 @@ app.get('/game/player/position/set', (req, res) => {
     if (methods.isToken(token)) {
         methods.setGamePlayerPosition(methods.getUser(token).id, area, x, y);
         methods.writeGame();
-        res.status(200).send('Success!');
+        res.status(200).send(true);
     } else {
         // Unauthorized
         res.status(401).send();
