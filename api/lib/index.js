@@ -169,7 +169,7 @@ app.get('/user/habit/new', (req, res) => {
     }
 });
 
-app.get('/game/area/set', (req, res) => {
+app.post('/game/area/set', (req, res) => {
     console.log('/game/area/set', req.query);
     const { token, id } = req.query;
     const data = req.body;
