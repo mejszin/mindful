@@ -107,6 +107,19 @@ methods.getGameArea = (area_id) => {
     }
 }
 
+methods.setGameTile = (tile_id, data) => {
+    game_data.tiles[tile_id] = data;
+    return true;
+}
+
+methods.getGameTile = (tile_id) => {
+    if (tile_id in game_data.tiles) {
+        return game_data.tiles[tile_id];
+    } else {
+        return undefined;
+    }
+}
+
 methods.addHabit = (token, name, days) => {
     if (methods.isToken(token)) {
         var habit_id = methods.randomString();
@@ -163,6 +176,38 @@ app.get('/user/habit/new', (req, res) => {
         var habit_id = methods.addHabit(token, name, days);
         methods.writeUsers();
         res.status(200).send(habit_id);
+    } else {
+        // Unauthorized
+        res.status(401).send();
+    }
+});
+
+app.post('/game/tile/set', (req, res) => {
+    console.log('/game/tile/set', req.query);
+    const { token, id } = req.query;
+    const data = req.body;
+    if (methods.isToken(token)) {
+        // Success
+        methods.setGameTile(id, data);
+        methods.writeGame();
+        res.status(200).send();
+    } else {
+        // Unauthorized
+        res.status(401).send();
+    }
+});
+
+app.get('/game/tile/get', (req, res) => {
+    console.log('/game/tile/get', req.query);
+    const { token, id } = req.query;
+    if (methods.isToken(token)) {
+        // Success
+        let tile = methods.getGameTile(id);
+        if (tile !== undefined) {
+            res.status(200).send(tile);
+        } else {
+            res.status(204).send();
+        }
     } else {
         // Unauthorized
         res.status(401).send();
