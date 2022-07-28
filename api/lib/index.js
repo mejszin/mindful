@@ -57,7 +57,7 @@ methods.createUser = (alias) => {
         tasks: {},
         habits: {}
     };
-    game_data[user_id] = {
+    game_data.players[user_id] = {
         alias: alias,
         position: [null, 0, 0], // [area, x, y]
     }
@@ -78,19 +78,32 @@ methods.getUser = (token, user_id = null) => {
 }
 
 methods.getGamePlayer = (user_id) => {
-    if (user_id in game_data) {
-        return game_data[user_id];
+    if (user_id in game_data.players) {
+        return game_data.players[user_id];
     } else {
         return undefined;
     }
 }
 
 methods.setGamePlayerPosition = (user_id, area, x, y) => {
-    if (user_id in game_data) {
-        game_data[user_id].position = [area, x, y];
+    if (user_id in game_data.players) {
+        game_data.players[user_id].position = [area, x, y];
         return true;
     } else {
         return false;
+    }
+}
+
+methods.setGameArea = (area_id, data) => {
+    game_data.areas[area_id] = data;
+    return true;
+}
+
+methods.getGameArea = (area_id) => {
+    if (area_id in game_data.areas) {
+        return game_data.areas[area_id];
+    } else {
+        return undefined;
     }
 }
 
@@ -156,11 +169,44 @@ app.get('/user/habit/new', (req, res) => {
     }
 });
 
+app.get('/game/area/set', (req, res) => {
+    console.log('/game/area/set', req.query);
+    const { token, id } = req.query;
+    const data = req.body;
+    if (methods.isToken(token)) {
+        // Success
+        methods.setGameArea(id, data);
+        methods.writeGame();
+        res.status(200).send();
+    } else {
+        // Unauthorized
+        res.status(401).send();
+    }
+});
+
+app.get('/game/area/get', (req, res) => {
+    console.log('/game/area/get', req.query);
+    const { token, id } = req.query;
+    if (methods.isToken(token)) {
+        // Success
+        let area = methods.getGameArea(id);
+        if (area !== undefined) {
+            res.status(200).send(area);
+        } else {
+            res.status(204).send();
+        }
+    } else {
+        // Unauthorized
+        res.status(401).send();
+    }
+});
+
 app.get('/game/player/position/get', (req, res) => {
     console.log('/game/player/position/get', req.query);
     const { token, id } = req.query;
     if (methods.isToken(token)) {
-        var player = methods.getGamePlayer(id);
+        // Success
+        let player = methods.getGamePlayer(id);
         if (player !== undefined) {
             res.status(200).send(player.position);
         } else {
