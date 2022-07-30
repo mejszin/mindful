@@ -246,6 +246,23 @@ app.get('/game/area/get', (req, res) => {
     }
 });
 
+app.get('/game/player/get', (req, res) => {
+    console.log('/game/player/get', req.query);
+    const { token, id } = req.query;
+    if (methods.isToken(token)) {
+        // Success
+        let player = methods.getGamePlayer(id);
+        if (player !== undefined) {
+            res.status(200).send(player);
+        } else {
+            res.status(204).send();
+        }
+    } else {
+        // Unauthorized
+        res.status(401).send();
+    }
+});
+
 app.get('/game/player/position/get', (req, res) => {
     console.log('/game/player/position/get', req.query);
     const { token, id } = req.query;
