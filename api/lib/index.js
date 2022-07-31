@@ -120,6 +120,10 @@ methods.getGameTile = (tile_id) => {
     }
 }
 
+methods.listGameTile = () => {
+    return Object.keys(game_data.tiles);
+}
+
 methods.addHabit = (token, name, days) => {
     if (methods.isToken(token)) {
         var habit_id = methods.randomString();
@@ -214,6 +218,18 @@ app.get('/game/tile/get', (req, res) => {
     }
 });
 
+app.get('/game/tile/list', (req, res) => {
+    console.log('/game/tile/list', req.query);
+    const { token, id } = req.query;
+    if (methods.isToken(token)) {
+        // Success
+        res.status(200).send(methods.listGameTile(id));
+    } else {
+        // Unauthorized
+        res.status(401).send();
+    }
+});
+
 app.post('/game/area/set', (req, res) => {
     console.log('/game/area/set', req.query);
     const { token, id } = req.query;
@@ -228,7 +244,7 @@ app.post('/game/area/set', (req, res) => {
         res.status(401).send();
     }
 });
-
+w
 app.get('/game/area/get', (req, res) => {
     console.log('/game/area/get', req.query);
     const { token, id } = req.query;
