@@ -220,10 +220,10 @@ app.get('/game/tile/get', (req, res) => {
 
 app.get('/game/tile/list', (req, res) => {
     console.log('/game/tile/list', req.query);
-    const { token, id } = req.query;
+    const { token } = req.query;
     if (methods.isToken(token)) {
         // Success
-        res.status(200).send(methods.listGameTile(id));
+        res.status(200).send(methods.listGameTile());
     } else {
         // Unauthorized
         res.status(401).send();
