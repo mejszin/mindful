@@ -244,7 +244,7 @@ app.post('/game/area/set', (req, res) => {
         res.status(401).send();
     }
 });
-w
+
 app.get('/game/area/get', (req, res) => {
     console.log('/game/area/get', req.query);
     const { token, id } = req.query;
