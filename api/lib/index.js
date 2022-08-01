@@ -18,6 +18,8 @@ var user_data = fs.existsSync(user_data_path) ? JSON.parse(fs.readFileSync(user_
 const game_data_path = './data/game.json';
 var game_data = fs.existsSync(user_data_path) ? JSON.parse(fs.readFileSync(game_data_path)) : {};
 
+const bcrypt = require('bcrypt');
+
 const methods = {};
 
 methods.randomString = (length = 8) => {
@@ -48,17 +50,35 @@ methods.isUser = (user_id) => {
     return true;
 }
 
-methods.createUser = (alias) => {
+methods.newSaltHash = (password) => {
+    return new Promise((resolve, reject) => {
+        bcrypt.genSalt(10, (err, salt) => {
+            bcrypt.hash(password, salt, function(err, hash) {
+                resolve([salt, hash]);
+            });
+        })
+    });
+};
+
+methods.createUser = async (username, password) => {
+    if (methods.usernameExists(username)) { return undefined };
     var token = methods.randomString();
     var user_id = methods.randomString();
+    var salt_hash = await methods.newSaltHash(password);
     user_data[token] = {
         id: user_id,
-        alias: alias,
+        alias: username,
+        username: username,
+        password: {
+            salt: salt_hash[0],
+            hash: salt_hash[1]
+        },
         tasks: {},
         habits: {}
     };
+    console.log(user_data[token]);
     game_data.players[user_id] = {
-        alias: alias,
+        username: username,
         position: [null, 0, 0], // [area, x, y]
     }
     return token;
@@ -76,6 +96,35 @@ methods.getUser = (token, user_id = null) => {
         return undefined;
     }
 }
+
+methods.usernameExists = (username) => {
+    var exists = false;
+    Object.keys(user_data).forEach(function(token) {
+        if (username == user_data[token].username) {
+            console.log('Username', username, 'is already in use.')
+            exists = true;
+        };
+    })
+    return exists;
+};
+
+// methods.comparePassword = async (password, hash) {
+//     const result = await bcrypt.compare(password, hash);
+//     return result;
+// }
+
+methods.findCredentials = async (username, password) => {
+    return new Promise((resolve, reject) => {
+        Object.keys(user_data).forEach(async function(token) {
+            if (username == user_data[token].username) {
+                const result = await bcrypt.compare(password, user_data[token].password.hash);
+                resolve(result ? token : null);
+            } else {
+                resolve(null);
+            }
+        });
+    });
+};
 
 methods.getGamePlayer = (user_id) => {
     if (user_id in game_data.players) {
@@ -151,17 +200,38 @@ app.get('/user/get', (req, res) => {
         // Unauthorized
         res.status(401).send();
     }
-})
+});
 
-app.get('/user/new', (req, res) => {
-    console.log('/user/new', req.query);
-    const { alias } = req.query;
-    if (alias != undefined) {
-        var token = methods.createUser(alias);
-        methods.writeUsers();
-        methods.writeGame();
+app.get('/user/login', async (req, res) => {
+    console.log('/user/login', req.query);
+    const { username, password } = req.query;
+    if (methods.usernameExists(username)) {
+        var token = await methods.findCredentials(username, password);
+    } else {
+        var token = null;
+    }
+    if (token != null) {
         // Success
         res.status(200).send({ token: token });
+    } else {
+        // Unauthorized
+        res.status(401).send();
+    }
+});
+
+app.get('/user/new', async (req, res) => {
+    console.log('/user/new', req.query);
+    const { username, password } = req.query;
+    if ((username != undefined) && (password != undefined)) {
+        var token = await methods.createUser(username, password);
+        if (token != undefined) {
+            // Success
+            methods.writeUsers();
+            methods.writeGame();
+            res.status(200).send({ token: token });
+        } else {
+            res.status(204).send();
+        }
     } else {
         // Bad request
         res.status(400).send();
