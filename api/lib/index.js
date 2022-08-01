@@ -101,7 +101,6 @@ methods.usernameExists = (username) => {
     var exists = false;
     Object.keys(user_data).forEach(function(token) {
         if (username == user_data[token].username) {
-            console.log('Username', username, 'is already in use.')
             exists = true;
         };
     })
@@ -212,7 +211,8 @@ app.get('/user/login', async (req, res) => {
     }
     if (token != null) {
         // Success
-        res.status(200).send({ token: token });
+        var user = methods.getUser(token);
+        res.status(200).send({ id: user.id, token: token });
     } else {
         // Unauthorized
         res.status(401).send();
