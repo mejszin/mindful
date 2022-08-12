@@ -17,6 +17,8 @@ const user_data_path = './data/users.json';
 var user_data = fs.existsSync(user_data_path) ? JSON.parse(fs.readFileSync(user_data_path)) : {};
 const game_data_path = './data/game.json';
 var game_data = fs.existsSync(user_data_path) ? JSON.parse(fs.readFileSync(game_data_path)) : {};
+const project_data_path = './data/projects.json';
+var project_data = fs.existsSync(user_data_path) ? JSON.parse(fs.readFileSync(project_data_path)) : {};
 
 const bcrypt = require('bcrypt');
 
@@ -41,6 +43,10 @@ methods.writeGame = () => {
     fs.writeFileSync(game_data_path, JSON.stringify(game_data));
 }
 
+methods.writeProjects = () => {
+    fs.writeFileSync(project_data_path, JSON.stringify(project_data));
+}
+
 methods.isToken = (token) => {
     return (token in user_data);
 }
@@ -51,7 +57,7 @@ methods.isUser = (user_id) => {
 }
 
 methods.newSaltHash = (password) => {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         bcrypt.genSalt(10, (err, salt) => {
             bcrypt.hash(password, salt, function(err, hash) {
                 resolve([salt, hash]);
@@ -72,14 +78,16 @@ methods.createUser = async (username, password) => {
         password: {
             salt: salt_hash[0],
             hash: salt_hash[1]
-        },
-        tasks: {},
-        habits: {}
+        }
     };
     console.log(user_data[token]);
     game_data.players[user_id] = {
         username: username,
         position: [null, 0, 0], // [area, x, y]
+    }
+    project_data.users[user_id] = {
+        username: username,
+        entries: {}
     }
     return token;
 }
@@ -107,11 +115,6 @@ methods.usernameExists = (username) => {
     return exists;
 };
 
-// methods.comparePassword = async (password, hash) {
-//     const result = await bcrypt.compare(password, hash);
-//     return result;
-// }
-
 methods.findCredentials = async (username, password) => {
     return new Promise((resolve, reject) => {
         Object.keys(user_data).forEach(async function(token) {
@@ -131,6 +134,21 @@ methods.getGamePlayer = (user_id) => {
     } else {
         return undefined;
     }
+}
+
+methods.getProjectUser = (user_id) => {
+    if (user_id in project_data.users) {
+        return project_data.users[user_id];
+    } else {
+        return undefined;
+    }
+}
+
+methods.newProjectEntry = (token, data) => {
+    var user_id = user_data[token].id;
+    var entry_id = methods.randomString();
+    console.log('newProjectEntry()', 'user_id=', user_id, 'entry_id=', entry_id);
+    project_data.users[user_id].entries[entry_id] = data;
 }
 
 methods.setGamePlayerPosition = (user_id, area, x, y) => {
@@ -172,7 +190,7 @@ methods.listGameTile = () => {
     return Object.keys(game_data.tiles);
 }
 
-methods.addHabit = (token, name, days) => {
+methods.addHabit = (token, name, days) => { // TODO: Remove
     if (methods.isToken(token)) {
         var habit_id = methods.randomString();
         user_data[token].habits[habit_id] = {
@@ -228,6 +246,7 @@ app.get('/user/new', async (req, res) => {
             // Success
             methods.writeUsers();
             methods.writeGame();
+            methods.writeProjects();
             res.status(200).send({ token: token });
         } else {
             res.status(204).send();
@@ -238,7 +257,7 @@ app.get('/user/new', async (req, res) => {
     }
 });
 
-app.get('/user/habit/new', (req, res) => {
+app.get('/user/habit/new', (req, res) => { // TODO: Remove
     console.log('/user/habit/new', req.query);
     const { token, name, mon, tue, wed, thu, fri, sat, sun } = req.query;
     if (methods.isToken(token)) {
@@ -250,6 +269,38 @@ app.get('/user/habit/new', (req, res) => {
         var habit_id = methods.addHabit(token, name, days);
         methods.writeUsers();
         res.status(200).send(habit_id);
+    } else {
+        // Unauthorized
+        res.status(401).send();
+    }
+});
+
+app.get('/projects/get', (req, res) => {
+    console.log('/projects/get', req.query);
+    const { token, id } = req.query;
+    if (methods.isToken(token)) {
+        // Success
+        let data = methods.getProjectUser(id);
+        if (data !== undefined) {
+            res.status(200).send(data.entries);
+        } else {
+            res.status(204).send();
+        }
+    } else {
+        // Unauthorized
+        res.status(401).send();
+    }
+});
+
+app.post('/projects/entry/new', (req, res) => {
+    console.log('/projects/entry/new', req.query);
+    const { token } = req.query;
+    const data = req.body;
+    if (methods.isToken(token)) {
+        // Success
+        methods.newProjectEntry(token, data);
+        methods.writeProjects();
+        res.status(200).send();
     } else {
         // Unauthorized
         res.status(401).send();
