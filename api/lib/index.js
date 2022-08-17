@@ -87,6 +87,7 @@ methods.createUser = async (username, password) => {
     }
     project_data.users[user_id] = {
         username: username,
+        tags: {},
         entries: {}
     }
     return token;
@@ -283,6 +284,23 @@ app.get('/projects/get', (req, res) => {
         let data = methods.getProjectUser(id);
         if (data !== undefined) {
             res.status(200).send(data.entries);
+        } else {
+            res.status(204).send();
+        }
+    } else {
+        // Unauthorized
+        res.status(401).send();
+    }
+});
+
+app.get('/projects/tags/get', (req, res) => {
+    console.log('/projects/tags/get', req.query);
+    const { token, id } = req.query;
+    if (methods.isToken(token)) {
+        // Success
+        let data = methods.getProjectUser(id);
+        if (data !== undefined) {
+            res.status(200).send(data.tags);
         } else {
             res.status(204).send();
         }
