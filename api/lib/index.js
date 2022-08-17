@@ -146,7 +146,7 @@ methods.getProjectUser = (user_id) => {
 
 methods.newProjectEntry = (token, data) => {
     var user_id = user_data[token].id;
-    var entry_id = methods.randomString();
+    var entry_id = methods.randomString(4);
     console.log('newProjectEntry()', 'user_id=', user_id, 'entry_id=', entry_id);
     project_data.users[user_id].entries[entry_id] = data;
 }
