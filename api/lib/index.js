@@ -163,6 +163,19 @@ methods.newProjectEntryFeed = (token, entry_id, data) => {
     }
 }
 
+methods.setProjectEntryVariable = (token, entry_id, variable, value) => {
+    var user_id = user_data[token].id;
+    if (entry_id in project_data.users[user_id].entries) {
+        if ('variables' in project_data.users[user_id].entries[entry_id]) {
+            project_data.users[user_id].entries[entry_id].variables[variable] = value;
+        } else {
+            project_data.users[user_id].entries[entry_id].variables = {
+                [variable]: value
+            }
+        }
+    }
+}
+
 methods.setGamePlayerPosition = (user_id, area, x, y) => {
     if (user_id in game_data.players) {
         game_data.players[user_id].position = [area, x, y];
@@ -343,6 +356,20 @@ app.post('/projects/entry/feed/new', (req, res) => {
     if (methods.isToken(token)) {
         // Success
         methods.newProjectEntryFeed(token, entry, data);
+        methods.writeProjects();
+        res.status(200).send();
+    } else {
+        // Unauthorized
+        res.status(401).send();
+    }
+});
+
+app.get('/projects/entry/variable/set', (req, res) => {
+    console.log('/projects/entry/variable/set', req.query);
+    const { token, entry, variable, value } = req.query;
+    if (methods.isToken(token)) {
+        // Success
+        methods.setProjectEntryVariable(token, entry, variable, value);
         methods.writeProjects();
         res.status(200).send();
     } else {
