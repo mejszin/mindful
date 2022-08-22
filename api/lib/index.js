@@ -176,6 +176,23 @@ methods.setProjectEntryVariable = (token, entry_id, variable, value) => {
     }
 }
 
+methods.newProjectEntryDatapoint = (token, entry_id, dataset, value) => {
+    var user_id = user_data[token].id;
+    if (entry_id in project_data.users[user_id].entries) {
+        if ('variables' in project_data.users[user_id].entries[entry_id]) {
+            if (dataset in project_data.users[user_id].entries[entry_id].variables) {
+                project_data.users[user_id].entries[entry_id].variables[dataset].push(value);
+            } else {
+                project_data.users[user_id].entries[entry_id].variables[dataset] = [value];
+            }
+        } else {
+            project_data.users[user_id].entries[entry_id].variables = {
+                [dataset]: [value]
+            }
+        }
+    }
+}
+
 methods.setGamePlayerPosition = (user_id, area, x, y) => {
     if (user_id in game_data.players) {
         game_data.players[user_id].position = [area, x, y];
@@ -370,6 +387,20 @@ app.get('/projects/entry/variable/set', (req, res) => {
     if (methods.isToken(token)) {
         // Success
         methods.setProjectEntryVariable(token, entry, variable, value);
+        methods.writeProjects();
+        res.status(200).send();
+    } else {
+        // Unauthorized
+        res.status(401).send();
+    }
+});
+
+app.get('/projects/entry/datapoint/new', (req, res) => {
+    console.log('/projects/entry/datapoint/new', req.query);
+    const { token, entry, dataset, value } = req.query;
+    if (methods.isToken(token)) {
+        // Success
+        methods.newProjectEntryDatapoint(token, entry, dataset, value);
         methods.writeProjects();
         res.status(200).send();
     } else {
