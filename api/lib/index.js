@@ -341,6 +341,7 @@ app.get('/projects/tags/get', (req, res) => {
         // Success
         let data = methods.getProjectUser(id);
         if (data !== undefined) {
+            console.log(data.tags);
             res.status(200).send(data.tags);
         } else {
             res.status(204).send();
