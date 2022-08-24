@@ -364,6 +364,25 @@ app.get('/projects/tags/get', (req, res) => {
     }
 });
 
+app.get('/projects/activity/get', (req, res) => {
+    console.log('/projects/activity/get', req.query);
+    const { token, id } = req.query;
+    if (methods.isToken(token)) {
+        // Success
+        let data = methods.getProjectUser(id);
+        if (data !== undefined) {
+            console.log(data.activity);
+            res.status(200).send(data.activity);
+        } else {
+            res.status(204).send();
+        }
+    } else {
+        // Unauthorized
+        res.status(401).send();
+    }
+});
+
+
 app.post('/projects/entry/new', (req, res) => {
     console.log('/projects/entry/new', req.query);
     const { token } = req.query;
