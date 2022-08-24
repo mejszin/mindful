@@ -87,6 +87,7 @@ methods.createUser = async (username, password) => {
     }
     project_data.users[user_id] = {
         username: username,
+        activity: {},
         tags: {},
         entries: {}
     }
@@ -190,6 +191,17 @@ methods.newProjectEntryDatapoint = (token, entry_id, dataset, value) => {
                 [dataset]: [value]
             }
         }
+    }
+}
+
+methods.incrementProjectActivity = (token) => {
+    var user_id = user_data[token].id;
+    var today = new Date();
+    today = `${today.getFullYear()}_${today.getMonth() + 1}_${today.getDate()}`
+    if (today in project_data.users[user_id].activity) {
+        project_data.users[user_id].activity[today] += 1;
+    } else {
+        project_data.users[user_id].activity[today] = 1;
     }
 }
 
@@ -359,6 +371,7 @@ app.post('/projects/entry/new', (req, res) => {
     if (methods.isToken(token)) {
         // Success
         methods.newProjectEntry(token, data);
+        methods.incrementProjectActivity(token);
         methods.writeProjects();
         res.status(200).send();
     } else {
@@ -374,6 +387,7 @@ app.post('/projects/entry/feed/new', (req, res) => {
     if (methods.isToken(token)) {
         // Success
         methods.newProjectEntryFeed(token, entry, data);
+        methods.incrementProjectActivity(token);
         methods.writeProjects();
         res.status(200).send();
     } else {
@@ -388,6 +402,7 @@ app.get('/projects/entry/variable/set', (req, res) => {
     if (methods.isToken(token)) {
         // Success
         methods.setProjectEntryVariable(token, entry, variable, value);
+        methods.incrementProjectActivity(token);
         methods.writeProjects();
         res.status(200).send();
     } else {
@@ -402,6 +417,7 @@ app.get('/projects/entry/datapoint/new', (req, res) => {
     if (methods.isToken(token)) {
         // Success
         methods.newProjectEntryDatapoint(token, entry, dataset, value);
+        methods.incrementProjectActivity(token);
         methods.writeProjects();
         res.status(200).send();
     } else {
