@@ -424,6 +424,7 @@ app.post('/projects/entry/feed/set', (req, res) => {
     console.log('/projects/entry/feed/set', req.query);
     const { token, entry, index } = req.query;
     const data = req.body;
+    console.log(data);
     if (methods.isToken(token)) {
         // Success
         methods.setProjectEntryFeed(token, entry, index, data);
