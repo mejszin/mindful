@@ -427,7 +427,7 @@ app.post('/projects/entry/feed/set', (req, res) => {
     console.log(data);
     if (methods.isToken(token)) {
         // Success
-        methods.setProjectEntryFeed(token, entry, index, data);
+        methods.setProjectEntryFeed(token, entry, parseInt(index), data);
         methods.incrementProjectActivity(token);
         methods.writeProjects();
         res.status(200).send();
