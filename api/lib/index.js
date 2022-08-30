@@ -146,11 +146,35 @@ methods.getProjectUser = (user_id) => {
     }
 }
 
+methods.getUserTagIndex = (user_id, tag) => {
+    Object.keys(project_data.users[user_id].tags).forEach(tag_id => {
+        if (project_data.users[user_id].tags[tag_id][0] == tag) {
+            return tag_id;
+        }
+    });
+    return -1;
+}
+
+methods.newUserTag = (user_id, tag) => {
+    let tag_id = Object.keys(project_data.users[user_id].tags).length.toString();
+    project_data.users[user_id].tags[tag_id] = [tag, '#D3D3D3'];
+    return tag_id;
+}
+
 methods.newProjectEntry = (token, data) => {
     var user_id = user_data[token].id;
     var entry_id = methods.randomString(4);
     console.log('newProjectEntry()', 'user_id=', user_id, 'entry_id=', entry_id);
+    let tag_indices = []
+    data.tags.forEach(tag => {
+        let tag_index = methods.getUserTagIndex(user_id, tag);
+        if (tag_index == -1) {
+            tag_index = methods.newUserTag(user_id, tag);
+        }
+        tag_indices.push(tag_index.toString());
+    });
     project_data.users[user_id].entries[entry_id] = data;
+    project_data.users[user_id].entries[entry_id].tags = tag_indices;
 }
 
 methods.newProjectEntryFeed = (token, entry_id, data) => {
