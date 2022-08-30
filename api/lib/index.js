@@ -161,7 +161,7 @@ methods.newUserTag = (user_id, tag) => {
     return tag_id;
 }
 
-methods.tagsToIndices = (tags) => {
+methods.tagsToIndices = (user_id, tags) => {
     let tag_indices = []
     tags.forEach(tag => {
         let tag_index = methods.getUserTagIndex(user_id, tag);
@@ -178,7 +178,7 @@ methods.newProjectEntry = (token, data) => {
     var entry_id = methods.randomString(4);
     console.log('newProjectEntry()', 'user_id=', user_id, 'entry_id=', entry_id);
     project_data.users[user_id].entries[entry_id] = data;
-    project_data.users[user_id].entries[entry_id].tags = methods.tagsToIndices(data.tags);
+    project_data.users[user_id].entries[entry_id].tags = methods.tagsToIndices(user_id, data.tags);
 }
 
 methods.setProjectEntry = (token, data) => {
@@ -187,7 +187,7 @@ methods.setProjectEntry = (token, data) => {
     if (data.id in project_data.users[user_id].entries) {
         project_data.users[user_id].entries[data.id].title = data.title;
         project_data.users[user_id].entries[data.id].description = data.description;
-        project_data.users[user_id].entries[data.id].tags = methods.tagsToIndices(data.tags);
+        project_data.users[user_id].entries[data.id].tags = methods.tagsToIndices(user_id, data.tags);
     }
 }
 
