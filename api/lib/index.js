@@ -158,6 +158,7 @@ methods.getUserTagIndex = (user_id, tag) => {
 }
 
 methods.newUserTag = (user_id, tag) => {
+    console.log('newUserTag()', 'user_id=', user_id, 'tag=', tag);
     let tag_id = Object.keys(project_data.users[user_id].tags).length.toString();
     project_data.users[user_id].tags[tag_id] = [tag, '#D3D3D3'];
     return tag_id;
@@ -167,6 +168,7 @@ methods.tagsToIndices = (user_id, tags) => {
     let tag_indices = []
     tags.forEach(tag => {
         let tag_index = methods.getUserTagIndex(user_id, tag);
+        console.log('tagsToIndices()', 'tag_index=', tag_index);
         if (tag_index == -1) {
             tag_index = methods.newUserTag(user_id, tag);
         }
