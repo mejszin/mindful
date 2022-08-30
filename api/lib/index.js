@@ -161,20 +161,32 @@ methods.newUserTag = (user_id, tag) => {
     return tag_id;
 }
 
-methods.newProjectEntry = (token, data) => {
-    var user_id = user_data[token].id;
-    var entry_id = methods.randomString(4);
-    console.log('newProjectEntry()', 'user_id=', user_id, 'entry_id=', entry_id);
+methods.tagsToIndices = (tags) => {
     let tag_indices = []
-    data.tags.forEach(tag => {
+    tags.forEach(tag => {
         let tag_index = methods.getUserTagIndex(user_id, tag);
         if (tag_index == -1) {
             tag_index = methods.newUserTag(user_id, tag);
         }
         tag_indices.push(tag_index.toString());
     });
+    return tag_indices;
+}
+
+methods.newProjectEntry = (token, data) => {
+    var user_id = user_data[token].id;
+    var entry_id = methods.randomString(4);
+    console.log('newProjectEntry()', 'user_id=', user_id, 'entry_id=', entry_id);
     project_data.users[user_id].entries[entry_id] = data;
-    project_data.users[user_id].entries[entry_id].tags = tag_indices;
+    project_data.users[user_id].entries[entry_id].tags = methods.tagsToIndices(data.tags);
+}
+
+methods.setProjectEntry = (token, data) => {
+    var user_id = user_data[token].id;
+    console.log('setProjectEntry()', 'user_id=', user_id, 'entry_id=', data.id);
+    project_data.users[user_id].entries[entry_id].title = data.title;
+    project_data.users[user_id].entries[entry_id].description = data.description;
+    project_data.users[user_id].entries[entry_id].tags = methods.tagsToIndices(data.tags);
 }
 
 methods.newProjectEntryFeed = (token, entry_id, data) => {
@@ -418,7 +430,11 @@ app.post('/projects/entry/new', (req, res) => {
     const data = req.body;
     if (methods.isToken(token)) {
         // Success
-        methods.newProjectEntry(token, data);
+        if ('id' in data) {
+            methods.setProjectEntry(token, data);
+        } else {
+            methods.newProjectEntry(token, data);
+        }
         methods.incrementProjectActivity(token);
         methods.writeProjects();
         res.status(200).send();
