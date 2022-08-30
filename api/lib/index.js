@@ -184,9 +184,11 @@ methods.newProjectEntry = (token, data) => {
 methods.setProjectEntry = (token, data) => {
     var user_id = user_data[token].id;
     console.log('setProjectEntry()', 'user_id=', user_id, 'entry_id=', data.id);
-    project_data.users[user_id].entries[entry_id].title = data.title;
-    project_data.users[user_id].entries[entry_id].description = data.description;
-    project_data.users[user_id].entries[entry_id].tags = methods.tagsToIndices(data.tags);
+    if (data.id in project_data.users[user_id].entries) {
+        project_data.users[user_id].entries[data.id].title = data.title;
+        project_data.users[user_id].entries[data.id].description = data.description;
+        project_data.users[user_id].entries[data.id].tags = methods.tagsToIndices(data.tags);
+    }
 }
 
 methods.newProjectEntryFeed = (token, entry_id, data) => {
