@@ -147,14 +147,15 @@ methods.getProjectUser = (user_id) => {
 }
 
 methods.getUserTagIndex = (user_id, tag) => {
+    let tag_index = -1;
     Object.keys(project_data.users[user_id].tags).forEach(tag_id => {
         console.log('getUserTagIndex()', project_data.users[user_id].tags[tag_id][0], tag);
         if (project_data.users[user_id].tags[tag_id][0] == tag) {
             console.log('getUserTagIndex()', '=', tag_id);
-            return tag_id;
+            tag_index = tag_id;
         }
     });
-    return -1;
+    return tag_index;
 }
 
 methods.newUserTag = (user_id, tag) => {
