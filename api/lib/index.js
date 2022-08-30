@@ -148,7 +148,9 @@ methods.getProjectUser = (user_id) => {
 
 methods.getUserTagIndex = (user_id, tag) => {
     Object.keys(project_data.users[user_id].tags).forEach(tag_id => {
+        console.log('getUserTagIndex()', project_data.users[user_id].tags[tag_id][0], tag);
         if (project_data.users[user_id].tags[tag_id][0] == tag) {
+            console.log('getUserTagIndex()', '=', tag_id);
             return tag_id;
         }
     });
